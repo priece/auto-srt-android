@@ -303,34 +303,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun extractAudioFromVideo(): File? {
-        // 将URI转换为文件
-        val videoFile = selectedVideoUri?.let { copyUriToFile(it) }
-        if (videoFile == null) {
-            addLog("[ERROR] 无法复制视频文件")
-            Log.e(TAG, "无法复制视频文件")
+        selectedVideoUri?.let { uri ->
+            // 创建输出音频文件
+            val fileName = getFileName(uri)
+            val nameWithoutExtension = if (fileName.contains('.')) {
+                fileName.substring(0, fileName.lastIndexOf('.'))
+            } else {
+                fileName
+            }
+            val audioFile = File(getExternalFilesDir(null), "$nameWithoutExtension.m4a")
+            addLog("开始提取音频轨道...")
+
+            // 使用AudioExtractor提取音频（直接从Uri读取，避免复制文件）
+            val extractor = AudioExtractor()
+            val success = extractor.extractAudioFromVideo(this, uri, audioFile)
+
+            if (!success) {
+                addLog("[ERROR] AudioExtractor返回失败")
+                return null
+            }
+
+            return audioFile
+        } ?: run {
+            addLog("[ERROR] 未选择视频文件")
+            Log.e(TAG, "未选择视频文件")
             return null
         }
-
-        // 创建输出音频文件
-        val audioFile = File(getExternalFilesDir(null), 
-            videoFile.nameWithoutExtension + ".mp3")
-        addLog("开始提取音频轨道...")
-
-        // 使用AudioExtractor提取音频
-        val extractor = AudioExtractor()
-        val success = extractor.extractAudioFromVideo(videoFile, audioFile)
-
-        // 清理临时视频文件
-        if (videoFile.absolutePath != selectedVideoUri?.path) {
-            videoFile.delete()
-            addLog("已清理临时视频文件")
-        }
-
-        if (!success) {
-            addLog("[ERROR] AudioExtractor返回失败")
-        }
-
-        return if (success) audioFile else null
     }
 
     private fun callVolcEngineAPI(audioFile: File): String? {

@@ -136,10 +136,9 @@ class VolcEngineAPI {
             "model_name" to "bigmodel",
             "enable_channel_split" to false,
             "enable_ddc" to true,
-            "enable_speaker_info" to true,
+            "enable_speaker_info" to false,
             "enable_punc" to true,
-            "enable_itn" to true,
-            "corpus" to corpus
+            "enable_itn" to true
         )
 
         // 创建主 request 对象

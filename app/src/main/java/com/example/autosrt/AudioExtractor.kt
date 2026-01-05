@@ -20,7 +20,49 @@ class AudioExtractor {
         try {
             extractor = MediaExtractor()
             extractor.setDataSource(videoFile.absolutePath)
+            return extractAudioInternal(extractor, outputAudioFile)
+        } catch (e: Exception) {
+            Log.e(TAG, "提取音频时发生错误", e)
+            return false
+        }
+    }
 
+    // 新增方法：直接从FileDescriptor读取，避免复制文件
+    fun extractAudioFromVideo(context: android.content.Context, videoUri: android.net.Uri, outputAudioFile: File): Boolean {
+        var extractor: MediaExtractor? = null
+        var muxer: MediaMuxer? = null
+        var inputStream: java.io.FileInputStream? = null
+
+        try {
+            extractor = MediaExtractor()
+            val fd = context.contentResolver.openFileDescriptor(videoUri, "r")
+            fd?.let {
+                extractor.setDataSource(it.fileDescriptor)
+                return extractAudioInternal(extractor, outputAudioFile)
+            } ?: run {
+                Log.e(TAG, "无法打开文件描述符")
+                return false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "提取音频时发生错误", e)
+            return false
+        } finally {
+            try {
+                inputStream?.close()
+                extractor?.release()
+                muxer?.stop()
+                muxer?.release()
+            } catch (e: Exception) {
+                Log.e(TAG, "释放资源时发生错误", e)
+            }
+        }
+    }
+
+    // 内部方法：实际的音频提取逻辑
+    private fun extractAudioInternal(extractor: MediaExtractor, outputAudioFile: File): Boolean {
+        var muxer: MediaMuxer? = null
+
+        try {
             val audioTrackIndex = selectTrackByMimeType(extractor, "audio/")
             if (audioTrackIndex < 0) {
                 Log.e(TAG, "视频中未找到音频轨道")
@@ -73,7 +115,6 @@ class AudioExtractor {
             return false
         } finally {
             try {
-                extractor?.release()
                 muxer?.stop()
                 muxer?.release()
             } catch (e: Exception) {
