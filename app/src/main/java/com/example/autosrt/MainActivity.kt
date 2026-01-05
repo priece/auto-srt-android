@@ -216,11 +216,12 @@ class MainActivity : AppCompatActivity() {
 
         // 使用协程或其他异步方式处理转换
         Thread {
+            var audioFile: File? = null
             try {
                 // 1. 提取音频
                 runOnUiThread { tvStatus.text = "正在提取音频..." }
                 addLog("\n=== 步骤1: 提取音频 ===")
-                val audioFile = extractAudioFromVideo()
+                audioFile = extractAudioFromVideo()
 
                 if (audioFile != null) {
                     addLog("音频提取成功")
@@ -285,6 +286,17 @@ class MainActivity : AppCompatActivity() {
                     tvStatus.text = "转换失败: ${e.message}"
                     progressBar.visibility = ProgressBar.GONE
                     btnConvert.isEnabled = true
+                }
+            } finally {
+                // 清理临时音频文件
+                if (audioFile != null && audioFile.exists()) {
+                    try {
+                        audioFile.delete()
+                        addLog("已清理临时音频文件")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "删除临时音频文件失败", e)
+                        addLog("[ERROR] 删除临时音频文件失败: ${e.message}")
+                    }
                 }
             }
         }.start()

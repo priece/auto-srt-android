@@ -134,7 +134,7 @@ class VolcEngineAPI {
         // 创建 request 部分
         val innerRequest = mapOf(
             "model_name" to "bigmodel",
-            "enable_channel_split" to true,
+            "enable_channel_split" to false,
             "enable_ddc" to true,
             "enable_speaker_info" to true,
             "enable_punc" to true,
