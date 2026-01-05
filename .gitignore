@@ -108,3 +108,6 @@ Desktop.ini
 *.swp
 *.swo
 *.orig
+
+# Runtime generated files
+data/response.json
