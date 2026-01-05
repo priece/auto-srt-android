@@ -1,5 +1,6 @@
 package com.example.autosrt
 
+import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
@@ -51,7 +52,12 @@ class AudioExtractor {
                 bufferInfo.offset = 0
                 bufferInfo.size = sampleSize
                 bufferInfo.presentationTimeUs = presentationTimeUs
-                bufferInfo.flags = extractor.sampleFlags
+                // 转换MediaExtractor的sampleFlags到MediaCodec的buffer flags
+                bufferInfo.flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+                    MediaCodec.BUFFER_FLAG_SYNC_FRAME
+                } else {
+                    0
+                }
 
                 muxer.writeSampleData(destAudioTrackIndex, buffer, bufferInfo)
 
