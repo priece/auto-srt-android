@@ -58,10 +58,50 @@ class SRTGenerator {
             Log.d(TAG, "将写入文件: ${srtFile.absolutePath}")
             
             // 写入SRT文件
-            srtFile.writeText(srtContent, Charsets.UTF_8)
-            
-            Log.i(TAG, "SRT文件生成成功: ${srtFile.absolutePath}")
-            return srtFile
+            try {
+                // 确保文件可以被覆盖
+                if (srtFile.exists()) {
+                    Log.d(TAG, "SRT文件已存在，将覆盖: ${srtFile.absolutePath}")
+                    // 尝试删除旧文件
+                    if (!srtFile.delete()) {
+                        Log.e(TAG, "无法删除旧的SRT文件")
+                        // 尝试直接写入，有些系统允许覆盖
+                    }
+                }
+                
+                srtFile.writeText(srtContent, Charsets.UTF_8)
+                
+                Log.i(TAG, "SRT文件生成成功: ${srtFile.absolutePath}")
+                return srtFile
+            } catch (e: Exception) {
+                Log.e(TAG, "写入SRT文件失败: ${e.message}", e)
+                
+                // 如果是权限错误，尝试使用应用程序的私有目录
+                if (e.message?.contains("EACCES") == true) {
+                    Log.d(TAG, "检测到权限错误，尝试使用应用程序私有目录")
+                    
+                    // 使用应用程序的缓存目录作为备选
+                    val privateDir = File(sourceAudioFile.parentFile, "srt")
+                    if (!privateDir.exists()) {
+                        privateDir.mkdirs()
+                        Log.d(TAG, "创建私有SRT目录: ${privateDir.absolutePath}")
+                    }
+                    
+                    val privateSrtFile = File(privateDir, srtFileName)
+                    Log.d(TAG, "尝试在私有目录写入SRT文件: ${privateSrtFile.absolutePath}")
+                    
+                    try {
+                        privateSrtFile.writeText(srtContent, Charsets.UTF_8)
+                        Log.i(TAG, "SRT文件在私有目录生成成功: ${privateSrtFile.absolutePath}")
+                        return privateSrtFile
+                    } catch (privateE: Exception) {
+                        Log.e(TAG, "在私有目录写入SRT文件也失败了: ${privateE.message}", privateE)
+                        return null
+                    }
+                }
+                
+                return null
+            }
         } catch (e: Exception) {
             Log.e(TAG, "生成SRT文件时发生错误", e)
             return null

@@ -123,7 +123,11 @@ class VolcEngineAPI {
         val user = mapOf("uid" to "fake_uid")
 
         // 创建 audio 部分，使用base64编码的音频数据
-        val audio = mapOf("data" to audioBase64)
+        val audio = mapOf(
+            "data" to audioBase64,
+            "format" to "wav",
+            "channel" to 1
+        )
 
         // 创建 corpus 部分
         val corpus = mapOf(
@@ -138,6 +142,8 @@ class VolcEngineAPI {
             "enable_ddc" to true,
             "enable_speaker_info" to false,
             "enable_punc" to true,
+            "vad_segment" to true,
+            "end_window_size" to 300,
             "enable_itn" to true
         )
 

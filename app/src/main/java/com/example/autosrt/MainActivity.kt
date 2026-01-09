@@ -311,12 +311,12 @@ class MainActivity : AppCompatActivity() {
             } else {
                 fileName
             }
-            val audioFile = File(getExternalFilesDir(null), "$nameWithoutExtension.m4a")
+            val audioFile = File(getExternalFilesDir(null), "$nameWithoutExtension.wav")
             addLog("开始提取音频轨道...")
 
-            // 使用AudioExtractor提取音频（直接从Uri读取，避免复制文件）
+            // 使用AudioExtractor提取音频为WAV格式（直接从Uri读取，避免复制文件）
             val extractor = AudioExtractor()
-            val success = extractor.extractAudioFromVideo(this, uri, audioFile)
+            val success = extractor.extractAudioFromVideoToWav(this, uri, audioFile)
 
             if (!success) {
                 addLog("[ERROR] AudioExtractor返回失败")
